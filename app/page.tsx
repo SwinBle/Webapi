@@ -14,20 +14,51 @@ import {
   CircularProgress,
   Modal,
   Box,
+  AppBar,
+  Toolbar,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import SearchIcon from '@mui/icons-material/Search';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2',
+      main: '#2196f3',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#f50057',
+    },
+    background: {
+      default: '#f5f5f5',
     },
   },
   typography: {
-    fontFamily: 'Roboto, sans-serif',
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 700,
+    },
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+          transition: 'transform 0.2s ease-in-out',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          },
+        },
+      },
+    },
   },
 });
 
@@ -42,8 +73,11 @@ export default function Page() {
   const [data, setData] = useState<Attraction[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedAttraction, setSelectedAttraction] =
-    useState<Attraction | null>(null);
+  const [selectedAttraction, setSelectedAttraction] = useState<Attraction | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     async function fetchData() {
@@ -56,6 +90,7 @@ export default function Page() {
         setData(result);
       } catch (error) {
         console.error(error);
+        setError('Failed to load attractions. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -77,46 +112,67 @@ export default function Page() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="xl" style={{ padding: '40px 0' }}>
-        <header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '20px 0',
-          }}
-        >
-          <Typography variant="h4" component="h1">
-            Discover Attractions
+      <AppBar position="static" color="primary">
+        <Toolbar>
+          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            TravelTech
           </Typography>
-          <div>
+          {!isMobile && (
             <TextField
               variant="outlined"
               placeholder="Search attractions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ marginRight: '10px' }}
+              size="small"
+              InputProps={{
+                startAdornment: <SearchIcon />,
+                style: { backgroundColor: 'white', borderRadius: '4px' },
+              }}
             />
-          </div>
-        </header>
+          )}
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+        {isMobile && (
+          <TextField
+            variant="outlined"
+            placeholder="Search attractions..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+            InputProps={{
+              startAdornment: <SearchIcon />,
+            }}
+          />
+        )}
         {loading ? (
-          <CircularProgress />
+          <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography color="error" align="center">
+            {error}
+          </Typography>
         ) : (
           <Grid container spacing={4}>
             {filteredData.map((a: Attraction) => (
-              <Grid item xs={12} md={4} key={a.id}>
+              <Grid item xs={12} sm={6} md={4} key={a.id}>
                 <Card>
                   <CardMedia
                     component="img"
                     height="200"
                     image={a.coverimage}
-                    title={a.name}
+                    alt={a.name}
                   />
                   <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
                       {a.name}
                     </Typography>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" color="textSecondary" noWrap>
                       {a.detail}
                     </Typography>
                   </CardContent>
