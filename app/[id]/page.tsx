@@ -1,48 +1,96 @@
-import React from 'react';
-import Container from '@mui/material/Container';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+'use client';
 
-interface myParams {
-  params: {
-    id: string;
-  };
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  Button,
+  CircularProgress,
+  Box,
+  Card,
+  CardMedia,
+  CardContent,
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+
+interface Attraction {
+  id: number;
+  name: string;
+  detail: string;
+  coverimage: string;
 }
 
-async function getData(id: string) {
-  const res = await fetch(`https://melivecode.com/api/attractions/` + id);
-  if (!res.ok) {
-    throw new Error('Failed to fetch data');
+export default function AttractionPage({ params }: { params: { id: string } }) {
+  const [attraction, setAttraction] = useState<Attraction | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchAttraction() {
+      try {
+        const res = await fetch(`https://www.melivecode.com/api/attractions/${params.id}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch attraction');
+        }
+        const result = await res.json();
+        setAttraction(result.attraction);
+      } catch (error) {
+        console.error(error);
+        setError('Failed to load attraction. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAttraction();
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
   }
-  return res.json();
-}
 
-export default async function Page({ params }: myParams) {
-  const data = await getData(params.id);
+  if (error) {
+    return (
+      <Container>
+        <Typography color="error" align="center">
+          {error}
+        </Typography>
+      </Container>
+    );
+  }
+
+  if (!attraction) {
+    return (
+      <Container>
+        <Typography align="center">Attraction not found.</Typography>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Button onClick={() => router.push('/')} sx={{ mb: 2 }}>
+        Back to Home
+      </Button>
       <Card>
         <CardMedia
           component="img"
-          image={data.attraction.coverimage}
-          title={data.attraction.name}
+          height="400"
+          image={attraction.coverimage}
+          alt={attraction.name}
         />
         <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
-            {data.attraction.name}
+          <Typography gutterBottom variant="h4" component="div">
+            {attraction.name}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            {data.attraction.detail}
+          <Typography variant="body1" color="text.secondary">
+            {attraction.detail}
           </Typography>
         </CardContent>
-        <CardActions>
-          <Button size="small">Share</Button>
-          <Button size="small">Learn More</Button>
-        </CardActions>
       </Card>
     </Container>
   );
