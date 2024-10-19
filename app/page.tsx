@@ -1,7 +1,6 @@
 'use client'; // Add this line at the top
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import {
   Container,
   Grid,
@@ -98,9 +97,6 @@ export default function Page() {
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ marginRight: '10px' }}
             />
-            {/* <Button variant="contained" color="primary">
-              Website Tour
-            </Button> */}
           </div>
         </header>
         {loading ? (
