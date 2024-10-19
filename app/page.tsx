@@ -1,4 +1,4 @@
-'use client'; // Add this line at the top
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,7 +12,6 @@ import {
   Typography,
   TextField,
   CircularProgress,
-  Modal,
   Box,
   AppBar,
   Toolbar,
@@ -23,6 +22,8 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import MenuIcon from '@mui/icons-material/Menu';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const theme = createTheme({
   palette: {
@@ -73,11 +74,11 @@ export default function Page() {
   const [data, setData] = useState<Attraction[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
-  const [selectedAttraction, setSelectedAttraction] = useState<Attraction | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -101,14 +102,6 @@ export default function Page() {
   const filteredData = data.filter((a: Attraction) =>
     a.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleOpenModal = (attraction: Attraction) => {
-    setSelectedAttraction(attraction);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedAttraction(null);
-  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -180,7 +173,7 @@ export default function Page() {
                     <Button
                       size="small"
                       color="primary"
-                      onClick={() => handleOpenModal(a)}
+                      onClick={() => router.push(`/${a.id}`)}
                     >
                       Learn More
                     </Button>
@@ -190,43 +183,6 @@ export default function Page() {
             ))}
           </Grid>
         )}
-        <Modal
-          open={!!selectedAttraction}
-          onClose={handleCloseModal}
-          aria-labelledby="attraction-modal-title"
-          aria-describedby="attraction-modal-description"
-        >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 400,
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-            }}
-          >
-            {selectedAttraction && (
-              <>
-                <Typography
-                  id="attraction-modal-title"
-                  variant="h6"
-                  component="h2"
-                >
-                  {selectedAttraction.name}
-                </Typography>
-                <Typography id="attraction-modal-description" sx={{ mt: 2 }}>
-                  {selectedAttraction.detail}
-                </Typography>
-                <Button onClick={handleCloseModal} sx={{ mt: 2 }}>
-                  Close
-                </Button>
-              </>
-            )}
-          </Box>
-        </Modal>
       </Container>
     </ThemeProvider>
   );
